@@ -27,12 +27,15 @@ names(par) <- c("rate_21", "rate_12")
 # par <- 0.02293632
 # names(par) <- "rate"
 
-dent_res <- dent_walk(par, fn_corHMM, -MK_3state$loglik, phy = phy, data = data, rate.cat = 1)
-all_results <- dent_res$results[-1,]
-accepted_results <- dent_res$results[-1,][dent_res$acceptances,]
+# corhmm_example <- dent_walk(par, fn_corHMM, -MK_3state$loglik, phy = phy, data = data, rate.cat = 1)
+# save(corhmm_example, file = "saves/corhmm_example.Rsave")
+# 
+load("saves/corhmm_example.Rsave")
+all_results <- corhmm_example$results[-1,]
+accepted_results <- corhmm_example$results[-1,][corhmm_example$acceptances,]
 round(cor(all_results[,-1]), 3)
 round(cor(accepted_results[,-1]), 3)
 
 
-dentist:::summary.dentist(dent_res)
-plot(dent_res)
+dentist:::summary.dentist(corhmm_example)
+plot(corhmm_example)

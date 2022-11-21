@@ -111,8 +111,11 @@ bd_fn <- function(par, phy){
 }
 
 
-dent_res <- dent_walk(par = coef(fit), bd_fn, best_neglnL = -fit$lnLik, nsteps = 2000, phy=phy, sd = c(1, 0.5))
-dentist:::plot.dentist(dent_res)
+# dent_res_10 <- dent_walk(par = coef(fit), bd_fn, best_neglnL = -fit$lnLik, nsteps = 2000, phy=phy, sd = c(1, 0.5))
+# save(dent_res_10, file="saves/dent_res_10.Rsave")
+
+load("saves/dent_res_10.Rsave")
+dentist:::plot.dentist(dent_res_10)
 dent_res
 coef(fit)
 
@@ -126,50 +129,53 @@ lik <- make.bd(phy)
 ## By default, optimisation gives a lambda close to 0.1 and extremely
 ## small mu:
 fit <- find.mle(lik, c(1, .5))
-dent_res <- dent_walk(par = coef(fit), bd_fn, best_neglnL = -fit$lnLik, nsteps = 2000, phy=phy)
-plot(dent_res)
+# dent_res_1000 <- dent_walk(par = coef(fit), bd_fn, best_neglnL = -fit$lnLik, nsteps = 2000, phy=phy)
+# save(dent_res_1000, file="saves/dent_res_1000.Rsave")
+
+load("saves/dent_res_1000.Rsave")
+plot(dent_res_1000)
 
 
-set.seed(1)
-phy <- trees(c(.1, .05), "bd", max.taxa=10)[[1]]
-lik <- make.bd(phy)
-brts <- getx(phy)
-
-dd_fit <- dd_ML(brts = brts, initparsopt = c(.1, .05, 100), idparsopt = c(1:3), ddmodel = 1,
-         cond = 1, tol = c(1E-3,1E-3,1E-4), optimmethod = 'simplex')
-
-dd_fn <- function(par, brts){
-  LnLik <- dd_loglik(pars1 = par, pars2 = c(100,1,1,1,0,2), brts = brts, missnumspec = 0) 
-  return(-LnLik)
-}
-
-par <- c(l = dd_fit$lambda, m = dd_fit$mu, k = dd_fit$K)
--dd_fit$loglik == dd_fn(par, brts) # test it's working
-
-dent_res <- dent_walk(par = par, fn = dd_fn, best_neglnL = -dd_fit$loglik, brts = brts)
-plot(dent_res, local.only = TRUE)
-
-
-set.seed(1)
-phy <- trees(c(.1, .05), "bd", max.taxa=500)[[1]]
-lik <- make.bd(phy)
-brts <- getx(phy)
-
-dd_fit <- dd_ML(brts = brts, initparsopt = c(.1, .05, 1000), idparsopt = c(1:3), ddmodel = 1,
-                cond = 1, tol = c(1E-3,1E-3,1E-4), optimmethod = 'simplex')
-
-dd_fn <- function(par, brts){
-  LnLik <- dd_loglik(pars1 = par, pars2 = c(1000,1,1,1,0,2), brts = brts, missnumspec = 0) 
-  return(-LnLik)
-}
-
-par <- c(l = dd_fit$lambda, m = dd_fit$mu, k = dd_fit$K)
--dd_fit$loglik == dd_fn(par, brts) # test it's working
-
-dent_res <- dent_walk(par = par, fn = dd_fn, best_neglnL = -dd_fit$loglik, brts = brts)
-plot(dent_res)
-
-
+# set.seed(1)
+# phy <- trees(c(.1, .05), "bd", max.taxa=10)[[1]]
+# lik <- make.bd(phy)
+# brts <- getx(phy)
+# 
+# dd_fit <- dd_ML(brts = brts, initparsopt = c(.1, .05, 100), idparsopt = c(1:3), ddmodel = 1,
+#          cond = 1, tol = c(1E-3,1E-3,1E-4), optimmethod = 'simplex')
+# 
+# dd_fn <- function(par, brts){
+#   LnLik <- dd_loglik(pars1 = par, pars2 = c(100,1,1,1,0,2), brts = brts, missnumspec = 0) 
+#   return(-LnLik)
+# }
+# 
+# par <- c(l = dd_fit$lambda, m = dd_fit$mu, k = dd_fit$K)
+# -dd_fit$loglik == dd_fn(par, brts) # test it's working
+# 
+# dent_res <- dent_walk(par = par, fn = dd_fn, best_neglnL = -dd_fit$loglik, brts = brts)
+# plot(dent_res, local.only = TRUE)
+# 
+# 
+# set.seed(1)
+# phy <- trees(c(.1, .05), "bd", max.taxa=500)[[1]]
+# lik <- make.bd(phy)
+# brts <- getx(phy)
+# 
+# dd_fit <- dd_ML(brts = brts, initparsopt = c(.1, .05, 1000), idparsopt = c(1:3), ddmodel = 1,
+#                 cond = 1, tol = c(1E-3,1E-3,1E-4), optimmethod = 'simplex')
+# 
+# dd_fn <- function(par, brts){
+#   LnLik <- dd_loglik(pars1 = par, pars2 = c(1000,1,1,1,0,2), brts = brts, missnumspec = 0) 
+#   return(-LnLik)
+# }
+# 
+# par <- c(l = dd_fit$lambda, m = dd_fit$mu, k = dd_fit$K)
+# -dd_fit$loglik == dd_fn(par, brts) # test it's working
+# 
+# dent_res <- dent_walk(par = par, fn = dd_fn, best_neglnL = -dd_fit$loglik, brts = brts)
+# plot(dent_res)
+# 
+# 
 
 
 

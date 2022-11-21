@@ -20,11 +20,14 @@ fn_xy(c(9,1), 10)
 
 par <- setNames(c(9,1), c("x", "y"))
 
-sphere_0.0 <- dent_walk(par, fn_xy, 0, value = 10, nsteps = 5000, lower_bound = -Inf, upper_bound = Inf, sphere_probability = 0, sd = 1)
+simple_xy <- dent_walk(par, fn_xy, 0, value = 10, nsteps = 5000, lower_bound = -Inf, upper_bound = Inf, sphere_probability = 0, sd = 1)
+save(simple_xy, file = "saves/simple_xy.Rsave")
 # sphere_0.5 <- dent_walk(par, fn_xy, 0, value = 10, nsteps = 5000, lower_bound = -Inf, upper_bound = Inf, sphere_probability = 0.15, sd = 1)
 # sphere_1.0 <- dent_walk(par, fn_xy, 0, value = 10, nsteps = 5000, lower_bound = -Inf, upper_bound = Inf, sphere_probability = 1, sd= 1)
 
-dentist:::plot.dentist(sphere_0.0)
+
+load("saves/simple_xy.Rsave")
+dentist:::plot.dentist(simple_xy)
 
 x <- seq(from=8, to=-50, length.out=1000)
 y1 <- sqrt(8-x)
@@ -36,7 +39,7 @@ lines(x, y2, col = "blue")
 lines(x, y3, col = "blue")
 lines(x, y4, col = "blue")
 
-r <- new_r(sphere_0.0$results[,2], "continuous")
+# r <- new_r(sphere_0.0$results[,2], "continuous")
 
 
 # dentist:::plot.dentist(sphere_0.5)

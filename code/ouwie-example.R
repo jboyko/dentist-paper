@@ -32,16 +32,19 @@ neg_lnLik <- ouwie_fn(pars[3:7], pars[1:2], tree, trait)
 pars.fixed <- pars[1:2]
 pars.free <- pars[3:7]
 
-dent_res <- dent_walk(pars.free, ouwie_fn, neg_lnLik, pars.fixed=pars.fixed, phy=tree, data=trait, nsteps = 1000)
-dentist:::plot.dentist(dent_res, local.only=TRUE)
+# ouwie_example <- dent_walk(pars.free, ouwie_fn, neg_lnLik, pars.fixed=pars.fixed, phy=tree, data=trait, nsteps = 5000)
+save(ouwie_example, file = "saves/ouwie_example.Rsave")
 
-all_results <- dent_res$results[-1,]
-accepted_results <- dent_res$results[-1,][dent_res$acceptances,]
-round(cov(all_results[,-1]), 3)
-round(cov(accepted_results[,-1]), 3)
+load("saves/ouwie_example.Rsave")
+dentist:::plot.dentist(ouwie_example, local.only=TRUE)
 
-
-plot(tree)
-nodelabels(pch=21, bg=select.reg)
-
-
+# all_results <- dent_res$results[-1,]
+# accepted_results <- dent_res$results[-1,][dent_res$acceptances,]
+# round(cov(all_results[,-1]), 3)
+# round(cov(accepted_results[,-1]), 3)
+# 
+# 
+# plot(tree)
+# nodelabels(pch=21, bg=select.reg)
+# 
+# 

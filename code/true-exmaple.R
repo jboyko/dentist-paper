@@ -39,7 +39,11 @@ nsteps <- c(10, 50, 100, 500, 1000, 5000)
 npoints <- 100
 
 # final data frame
-many_sims <- do.call(rbind, lapply(1:100, function(x) singleRun(npoints, nsteps)))
+# many_sims <- do.call(rbind, lapply(1:100, function(x) singleRun(npoints, nsteps)))
+# save(many_sims, file = "2022_dentist/saves/true-example.Rsave")
+
+setwd("2022_dentist")
+load("saves/true-example.Rsave")
 plot_df <- melt(many_sims, id.vars = c("steps"))
 
 # plotting the results as a simple boxplot
@@ -59,33 +63,33 @@ ggplot(plot_df, aes(x = as.factor(steps), y = abs(value), fill = as.factor(varia
 # log norm
 # sem <- best_par[2]^(1/sqrt(length(sims)))
 # se <- best_par[1]/(sem^1.96)
-# normal
-
-true_ci
-estimtaes
-
-euclidean
-
-
-out <- list()
-for(i in 1:100){
-}
-
-# boxplot(do.call(rbind, out))
-plot(y = , x = nsteps, xlab = "No. of steps", ylab = "RMSE", main = "Error in SE estimates of the mean")
-abline(h = 0)
-
-
-require(corHMM)
-
-data(primates)
-phy <- multi2di(primates[[1]])
-data <- primates[[2]]
-MK_3state <- corHMM(phy = phy, data = data, rate.cat = 1)
-
-cor_list <- lapply(nsteps, function(x) ComputeCI(MK_3state, desired.delta = 2, x))
-estimtaes <- do.call(rbind, lapply(cor_list, function(x) c(x$all_ranges[2,], x$all_ranges[3,])))
-
-# confidence_results <- ComputeCI(MK_3state, desired.delta = 2, 200)
-print(confidence_results)
-corHMM:::plot.dentist(confidence_results)
+# # normal
+# 
+# true_ci
+# estimtaes
+# 
+# euclidean
+# 
+# 
+# out <- list()
+# for(i in 1:100){
+# }
+# 
+# # boxplot(do.call(rbind, out))
+# plot(y = , x = nsteps, xlab = "No. of steps", ylab = "RMSE", main = "Error in SE estimates of the mean")
+# abline(h = 0)
+# 
+# 
+# require(corHMM)
+# 
+# data(primates)
+# phy <- multi2di(primates[[1]])
+# data <- primates[[2]]
+# MK_3state <- corHMM(phy = phy, data = data, rate.cat = 1)
+# 
+# cor_list <- lapply(nsteps, function(x) ComputeCI(MK_3state, desired.delta = 2, x))
+# estimtaes <- do.call(rbind, lapply(cor_list, function(x) c(x$all_ranges[2,], x$all_ranges[3,])))
+# 
+# # confidence_results <- ComputeCI(MK_3state, desired.delta = 2, 200)
+# print(confidence_results)
+# corHMM:::plot.dentist(confidence_results)
