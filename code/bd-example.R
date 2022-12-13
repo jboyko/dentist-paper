@@ -113,10 +113,9 @@ bd_fn <- function(par, phy){
 
 # dent_res_10 <- dent_walk(par = coef(fit), bd_fn, best_neglnL = -fit$lnLik, nsteps = 2000, phy=phy, sd = c(1, 0.5))
 # save(dent_res_10, file="saves/dent_res_10.Rsave")
-
+setwd("2022_dentist/")
 load("saves/dent_res_10.Rsave")
 dentist:::plot.dentist(dent_res_10)
-dent_res
 coef(fit)
 
 
@@ -176,6 +175,8 @@ plot(dent_res_1000)
 # plot(dent_res)
 # 
 # 
+
+
 
 
 
