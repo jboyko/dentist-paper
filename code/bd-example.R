@@ -1,3 +1,7 @@
+rm(list=ls())
+setwd("~/2022_dentist/")
+set.seed(1)
+
 require(diversitree)
 require(dentist)
 
@@ -95,7 +99,6 @@ convertBetweenPars <- function(pars){
 
 ## Simulate a tree under a constant rates birth-death model and look at
 ## the maximum likelihood speciation/extinction parameters:
-set.seed(1)
 phy <- trees(c(1, .5), "bd", max.taxa=10)[[1]]
 lik <- make.bd(phy)
 
@@ -111,17 +114,15 @@ bd_fn <- function(par, phy){
 }
 
 
-# dent_res_10 <- dent_walk(par = coef(fit), bd_fn, best_neglnL = -fit$lnLik, nsteps = 2000, phy=phy, sd = c(1, 0.5))
-# save(dent_res_10, file="saves/dent_res_10.Rsave")
-setwd("2022_dentist/")
+#dent_res_10 <- dent_walk(par = coef(fit), bd_fn, best_neglnL = -fit$lnLik, nsteps = 1000, phy=phy, sd = c(1, 0.5))
+#save(dent_res_10, file="saves/dent_res_10.Rsave")
 load("saves/dent_res_10.Rsave")
+# save the plot as pdf
+pdf("plots/bd-example-1.pdf", width=10, height=10)
 dentist:::plot.dentist(dent_res_10)
-coef(fit)
-
-
+dev.off()
 
 # add more data
-set.seed(1)
 phy <- trees(c(1, .5), "bd", max.taxa=1000)[[1]]
 lik <- make.bd(phy)
 
@@ -132,7 +133,10 @@ fit <- find.mle(lik, c(1, .5))
 # save(dent_res_1000, file="saves/dent_res_1000.Rsave")
 
 load("saves/dent_res_1000.Rsave")
+# save the plot as pdf
+pdf("plots/bd-example-2.pdf", width=10, height=10)
 plot(dent_res_1000)
+dev.off()
 
 
 # set.seed(1)

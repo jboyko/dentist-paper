@@ -1,6 +1,8 @@
+setwd("~/2022_dentist/")
+
 require(dentist)
 require(corHMM)
-?corHMM
+# ?corHMM
 
 data(primates)
 phy <- multi2di(primates[[1]])
@@ -38,4 +40,8 @@ round(cor(accepted_results[,-1]), 3)
 
 
 dentist:::summary.dentist(corhmm_example)
+
+# save the plot as a pdf
+pdf(file = "plots/corhmm_example.pdf", width = 10, height = 10)
 plot(corhmm_example)
+dev.off()
