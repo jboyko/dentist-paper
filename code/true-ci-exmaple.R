@@ -1,3 +1,5 @@
+setwd("~/dentist-paper/")
+
 require(reshape2)
 require(dentist)
 require(ggplot2)
@@ -52,7 +54,8 @@ ggplot(plot_df, aes(x = as.factor(steps), y = abs(value), fill = as.factor(varia
   ylab("Absolute distance to closed form CI") +
   geom_boxplot(outlier.shape = NA, width=0.5) +
   theme_classic()
-
+# save the plot as a pdf
+# ggsave("figures/raw/true-example.pdf", width = 6, height = 4)
 
 # tmp <- stats::rlnorm(100000, meanlog=1, sdlog=3)
 # sort(tmp)[c(0.025 * 100000, 0.975 * 100000)]
@@ -93,3 +96,4 @@ ggplot(plot_df, aes(x = as.factor(steps), y = abs(value), fill = as.factor(varia
 # # confidence_results <- ComputeCI(MK_3state, desired.delta = 2, 200)
 # print(confidence_results)
 # corHMM:::plot.dentist(confidence_results)
+

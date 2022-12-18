@@ -1,4 +1,4 @@
-setwd("~/2022_dentist/")
+setwd("~/dentist-paper/")
 
 require(dentist)
 require(corHMM)
