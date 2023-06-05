@@ -14,6 +14,11 @@ dlnorm_to_run <- function(par, sims) {
   return(-sum(stats::dlnorm(sims, meanlog=par[1], sdlog=par[2], log=TRUE)))
 }
 
+dlnorm_to_run_uni <- function(par, sdlog, sims) {
+  return(-sum(stats::dlnorm(sims, meanlog=par, sdlog=sdlog, log=TRUE)))
+}
+
+
 # single simulation which results in a distance calculation for all number of steps
 singleRun <- function(npoints, nsteps){
   sims <- stats::rlnorm(npoints, meanlog=1, sdlog=3)
@@ -24,7 +29,8 @@ singleRun <- function(npoints, nsteps){
   sem <- best_par[2]/sqrt(length(sims))
   se <- sem*1.96
   true_ci <- c(lower = best_par[1] - (se), upper = best_par[1] + (se))
-  dent_list <- lapply(nsteps, function(x) dent_walk(par=best_par, fn=dlnorm_to_run, best_neglnL=best_neglnL, nsteps=x, print_freq=1e10, sims=sims, delta = 1.92))
+  dent_list <- lapply(nsteps, function(x) dent_walk(par=best_par, fn=dlnorm_to_run, best_neglnL=best_neglnL, nsteps=x, print_freq=1e10, sims=sims))
+  dent_list <- lapply(nsteps, function(x) dent_walk(par=best_par[1], fn=dlnorm_to_run_uni, best_neglnL=best_neglnL, nsteps=x, print_freq=1e10, sims=sims, sdlog = best_par[2]))
   estimtaes <- do.call(rbind, lapply(dent_list, function(x) c(x$all_ranges[2,1], x$all_ranges[3,1])))
   lower.bound.diff <- estimtaes[,1] - true_ci[1]
   upper.bound.diff <- estimtaes[,2] - true_ci[2]

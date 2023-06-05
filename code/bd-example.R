@@ -114,9 +114,20 @@ bd_fn <- function(par, phy){
 }
 
 
-#dent_res_10 <- dent_walk(par = coef(fit), bd_fn, best_neglnL = -fit$lnLik, nsteps = 1000, phy=phy, sd = c(1, 0.5))
+# dent_res_10 <- dent_walk(par = coef(fit), bd_fn, best_neglnL = -fit$lnLik, nsteps = 1000, phy=phy, sd = c(1, 0.5))
 #save(dent_res_10, file="saves/dent_res_10.Rsave")
 load("saves/dent_res_10.Rsave")
+
+# a quick parametric bootstrap
+library(TreeSim)
+age = max(branching.times(phy))
+taxa = length(phy$tip.label)
+many_trees <- sim.bd.taxa.age(n = taxa, numbsim = 1000, lambda = fit$par[1], mu = fit$par[2], age = age)
+many_fits <- lapply(many_trees, function(x) find.mle(make.bd(x), c(1,.5)))
+many_fits <- do.call(rbind, lapply(many_fits, function(x) x$par))
+colMeans(many_fits)
+quantile(many_fits[,1], c(0.025, 0.975))
+quantile(many_fits[,2], c(0.025, 0.975))
 # save the plot as pdf
 pdf("plots/bd-example-1.pdf", width=10, height=10)
 dentist:::plot.dentist(dent_res_10)
