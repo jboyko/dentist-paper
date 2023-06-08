@@ -1,0 +1,11 @@
+"","model","method","paramater","gen_value","best","lower.CI","upper.CI"
+"1","lognorm","t-dist","mean",1,1.02529,0.44113,1.60944
+"6","lognorm","dentist_1000","mean",1,1.0253,0.44962,1.6075
+"13","corhmm","parametric-bootstrap","rate_12",0.1,0.24479,0.03631,6.18069
+"2","corhmm","parametric-bootstrap","rate_21",0.01,0.02162,0.0038,0.50406
+"11","corhmm","dentist_1000","rate_12",0.1,0.28657,0.08184,34.87046
+"12","corhmm","dentist_1000","rate_21",0.01,0.02209,0.00638,1.7307
+"14","bd","parametric-bootstrap","lambda",1,1.31443,0.84474,2.88869
+"21","bd","parametric-bootstrap","mu",0.5,0.27718,0,2.45616
+"111","bd","dentist_1000","lambda",1,1.19245,0.60414,2.82363
+"121","bd","dentist_1000","mu",0.5,0.41566,0.04285,2.06205

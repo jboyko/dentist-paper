@@ -29,8 +29,8 @@ ouwie_fn <- function(pars, phy, data){
 
 neg_lnLik <- ouwie_fn(pars, tree, trait)
 
-#ouwie_example <- dent_walk(pars, ouwie_fn, neg_lnLik, phy=tree, data=trait, nsteps = 2000)
-#save(ouwie_example, file = "saves/ouwie_example.Rsave")
+# ouwie_example <- dent_walk(pars, ouwie_fn, neg_lnLik, phy=tree, data=trait, nsteps = 2000)
+# save(ouwie_example, file = "saves/ouwie_example.Rsave")
 
 load("saves/ouwie_example.Rsave")
 # save the plot as a pdf

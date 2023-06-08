@@ -1,10 +1,6 @@
 rm(list=ls())
-setwd("~/2022_dentist/")
-set.seed(1)
 
-require(diversitree)
-require(dentist)
-
+#functions
 convert2Lambda <- function(pars){
   if(is.na(pars[1])){
     focal_pars <- sample(which(!is.na(pars)), size = 2, replace = FALSE)
@@ -97,7 +93,100 @@ convertBetweenPars <- function(pars){
   return(out)
 }
 
-## Simulate a tree under a constant rates birth-death model and look at
+bd_fn <- function(par, phy){
+  lik <- make.bd(phy)
+  LnLik <- lik(par)
+  return(-LnLik)
+}
+
+singleRun <- function(nsteps, phy){
+  lik <- make.bd(phy)
+  fit <- find.mle(lik, c(1, .5))
+  loglik <- fit$lnLik
+  best_neglnL <- -loglik
+  best_par <- fit$par
+  age = max(branching.times(phy))
+  taxa = length(phy$tip.label)
+  
+  many_trees <- sim.bd.taxa.age(n = taxa, numbsim = 1000, lambda = best_par[1], mu = best_par[2], age = age)
+  many_fits <- lapply(many_trees, function(x) find.mle(make.bd(x), c(1,.5)))
+  many_fits <- do.call(rbind, lapply(many_fits, function(x) x$par))
+  true_ci <- apply(many_fits, 2, function(x) quantile(x, c(0.025, 0.5, 0.975)))
+  true_table <- data.frame(method = "parametric-bootstrap", paramater = c("lambda", "mu"), gen_value = c(1, 0.5), best = true_ci[2,], lower.CI = true_ci[1,], upper.CI = true_ci[3,], row.names = NULL)
+  
+  dent_list <- lapply(nsteps, function(x) dent_walk(par = best_par, bd_fn, best_neglnL = best_neglnL, nsteps = x, phy=phy))
+  estimtates <- do.call(cbind, lapply(dent_list, function(x) x$all_ranges[1:3,]))
+  dentist_table <- data.frame(method = paste0("dentist_",rep(nsteps, each = 2)), paramater = c("lambda", "mu"), gen_value = c(1, 0.5), t(estimtates), row.names = NULL)
+  out <- rbind(true_table, dentist_table)
+  return(out)
+}
+
+# run
+setwd("~/dentist-paper/")
+set.seed(1)
+
+require(diversitree)
+require(dentist)
+
+### #### ##### ### #### ##### ### #### #####
+# testing CI convergence
+### #### ##### ### #### ##### ### #### #####
+trees <- sim.bd.taxa.age(n = 20, numbsim = 100, lambda = 1, mu = 0.5, age = 3)
+
+nsteps <- c(10, 50, 100, 500, 1000)
+fits <- lapply(trees, function(x) singleRun(nsteps, x))
+# save(fits, file = "saves/bd-example-fits.rsave")
+load(file = "saves/bd-example-fits.rsave")
+
+many_sims <- do.call(rbind, fits)
+# Add simulation identifier
+many_sims$simulation <- rep(1:(nrow(many_sims) / 12), each = 12)
+
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(ggplot2)
+
+# Calculate absolute differences
+many_sims_diff <- many_sims %>%
+  group_by(simulation, paramater, gen_value) %>%
+  mutate(
+    true_lower.CI = lower.CI[method == "parametric-bootstrap"],
+    true_upper.CI = upper.CI[method == "parametric-bootstrap"],
+    abs_diff_lower = abs(true_lower.CI - lower.CI),
+    abs_diff_upper = abs(true_upper.CI - upper.CI)
+  ) %>%
+  ungroup()
+
+many_sims_diff <- many_sims_diff[!many_sims_diff$method == "parametric-bootstrap",]
+
+many_sims_diff$nsteps <- as.numeric(gsub("dentist_", "", many_sims_diff$method))
+
+# Reshape data to long format
+many_sims_diff_long <- many_sims_diff %>%
+  pivot_longer(cols = c(abs_diff_lower, abs_diff_upper),
+               names_to = "bound",
+               values_to = "abs_diff")
+
+# Change bound names to more readable format
+many_sims_diff_long$bound <- recode(many_sims_diff_long$bound, 
+                                    abs_diff_lower = "Lower Bound", 
+                                    abs_diff_upper = "Upper Bound")
+
+# Plot
+ggplot(many_sims_diff_long, aes(x = as.factor(nsteps), y = abs_diff, fill = bound)) +
+  xlab("Number of steps taken") +
+  ylab("Absolute distance to bootstrap CI") +
+  geom_boxplot(outlier.shape = NA, width = 0.5) +
+  theme_classic() +
+  scale_fill_brewer(palette = "Set1") +
+  ylim(c(0, 2)) +
+  facet_wrap(~paramater)
+
+
+### #### ##### ### #### ##### ### #### ##### 
+## practical identifiability and the like
+### #### ##### ### #### ##### ### #### #####
 ## the maximum likelihood speciation/extinction parameters:
 phy <- trees(c(1, .5), "bd", max.taxa=10)[[1]]
 lik <- make.bd(phy)
@@ -106,29 +195,10 @@ lik <- make.bd(phy)
 ## small mu:
 fit <- find.mle(lik, c(1, .5))
 
-# remember the change the output of the function to negative loglik
-bd_fn <- function(par, phy){
-  lik <- make.bd(phy)
-  LnLik <- lik(par)
-  return(-LnLik)
-}
-
-
 # dent_res_10 <- dent_walk(par = coef(fit), bd_fn, best_neglnL = -fit$lnLik, nsteps = 1000, phy=phy, sd = c(1, 0.5))
-#save(dent_res_10, file="saves/dent_res_10.Rsave")
+# save(dent_res_10, file="saves/dent_res_10.Rsave")
 load("saves/dent_res_10.Rsave")
 
-# a quick parametric bootstrap
-library(TreeSim)
-age = max(branching.times(phy))
-taxa = length(phy$tip.label)
-many_trees <- sim.bd.taxa.age(n = taxa, numbsim = 1000, lambda = fit$par[1], mu = fit$par[2], age = age)
-many_fits <- lapply(many_trees, function(x) find.mle(make.bd(x), c(1,.5)))
-many_fits <- do.call(rbind, lapply(many_fits, function(x) x$par))
-save(many_fits, file = "saves/many_fits_10.Rsave")
-colMeans(many_fits)
-quantile(many_fits[,1], c(0.025, 0.975))
-quantile(many_fits[,2], c(0.025, 0.975))
 # save the plot as pdf
 pdf("plots/bd-example-1.pdf", width=10, height=10)
 dentist:::plot.dentist(dent_res_10)

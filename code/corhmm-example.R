@@ -39,7 +39,7 @@ singleRun <- function(nsteps, tree, data){
   best_neglnL <- -loglik
   best_par <- corhmm_fit$solution[!is.na(corhmm_fit$solution)]
   names(best_par) <- c("rate_12", "rate_21")
-  true_ci <- paraBoot(tree, data, nboots = 100)
+  true_ci <- paraBoot(tree, data, nboots = 1000)
   dent_list <- lapply(nsteps, function(x) dent_walk(par=best_par, fn=fn_corHMM, best_neglnL=best_neglnL, nsteps=x, print_freq=1e10, phy = tree, data = data))
   estimtates <- do.call(cbind, lapply(dent_list, function(x) x$all_ranges[1:3,]))
   true_table <- data.frame(method = "parametric-bootstrap", paramater = c("rate_12", "rate_21"), gen_value = c(0.1, 0.01), best = true_ci[2,], lower.CI = true_ci[1,], upper.CI = true_ci[3,], row.names = NULL)
@@ -73,13 +73,55 @@ for(i in 1:length(datas)){
 # parametric boostrap approach
 nsteps <- c(10, 50, 100, 500, 1000)
 
-fits <- lapply(all_data, function(x) try(singleRun(nsteps, x[[1]], x[[2]])))
-save(fits, file = "saves/corhmm-example-fits.rsave")
+# fits <- mclapply(all_data, function(x) try(singleRun(nsteps, x[[1]], x[[2]])))
+# save(fits, file = "saves/corhmm-example-fits.rsave")
 load(file = "saves/corhmm-example-fits.rsave")
-# fits <- fits[unlist(lapply(fits, class)) == "corhmm"] # remove univariate simulations
-# many_sims <- do.call(rbind, lapply(all_data, function(x) singleRun(npoints, nsteps)))
+fits <- fits[unlist(lapply(fits, class)) != "try-error"] # remove univariate simulations
+many_sims <- do.call(rbind, fits)
+# Add simulation identifier
+many_sims$simulation <- rep(1:(nrow(many_sims) / 12), each = 12)
 
-refit_pars <- do.call(rbind, lapply(fits, function(x) x$solution[!is.na(x$solution)]))
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(ggplot2)
+
+# Calculate absolute differences
+many_sims_diff <- many_sims %>%
+  group_by(simulation, paramater, gen_value) %>%
+  mutate(
+    true_lower.CI = lower.CI[method == "parametric-bootstrap"],
+    true_upper.CI = upper.CI[method == "parametric-bootstrap"],
+    abs_diff_lower = abs(true_lower.CI - lower.CI),
+    abs_diff_upper = abs(true_upper.CI - upper.CI)
+  ) %>%
+  ungroup()
+
+many_sims_diff <- many_sims_diff[!many_sims_diff$method == "parametric-bootstrap",]
+
+many_sims_diff$nsteps <- as.numeric(gsub("dentist_", "", many_sims_diff$method))
+
+# Reshape data to long format
+many_sims_diff_long <- many_sims_diff %>%
+  pivot_longer(cols = c(abs_diff_lower, abs_diff_upper),
+               names_to = "bound",
+               values_to = "abs_diff")
+
+# Change bound names to more readable format
+many_sims_diff_long$bound <- recode(many_sims_diff_long$bound, 
+                                    abs_diff_lower = "Lower Bound", 
+                                    abs_diff_upper = "Upper Bound")
+
+# Plot
+ggplot(many_sims_diff_long, aes(x = as.factor(nsteps), y = abs_diff, fill = bound)) +
+  xlab("Number of steps taken") +
+  ylab("Absolute distance to bootstrap CI") +
+  geom_boxplot(outlier.shape = NA, width = 0.5) +
+  theme_classic() +
+  scale_fill_brewer(palette = "Set1") +
+  ylim(c(0, 2)) +
+  facet_wrap(~paramater)
+
 
 # using dentist
 par <- c(MK_3state$solution[!is.na(MK_3state$solution)])

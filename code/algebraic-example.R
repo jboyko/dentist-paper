@@ -1,5 +1,5 @@
 rm(list=ls())
-setwd("~/2022_dentist/")
+setwd("~/dentist-paper/")
 set.seed(1)
 library(diversitree)
 library(dentist)
@@ -15,8 +15,8 @@ lnL <- function(par) {
   return(-neglnL(par)) 
 }
 
-#samples <- mcmc(lik=lnL, x.init=c(5,1), nsteps=10000, w=5, prior=make.prior.exponential(10))
-#save(samples, file="saves/samples-1.RData")
+# samples <- mcmc(lik=lnL, x.init=c(5,1), nsteps=10000, w=5, prior=make.prior.exponential(10))
+# save(samples, file="saves/samples-1.RData")
 load("saves/samples-1.RData")
 hist(samples$X1)
 
@@ -27,7 +27,7 @@ plot(X2 ~ X1, samples)
 
 col <- c("blue", "red")
 
-#dented_results <- dent_walk(par=c(x=5,y=1), fn=neglnL, best_neglnL = neglnL(c(5,1)), sd=1, nsteps=2500, lower_bound = -Inf, upper_bound = Inf)
+# dented_results <- dent_walk(par=c(x=5,y=1), fn=neglnL, best_neglnL = neglnL(c(5,1)), sd=1, nsteps=2500, lower_bound = -Inf, upper_bound = Inf)
 #save(dented_results, file="saves/dented_results-1.RData")
 load("saves/dented_results-1.RData")
 # save a pdf of the plot
@@ -53,9 +53,12 @@ lnL <- function(par) {
 
 rate = 10
 prior_fn <- make.prior.exponential(rate)
-
+prior_fn_2 <- make.prior.uniform(-1000, 1000)
 # samples <- mcmc(lik=lnL, x.init=c(9,1), nsteps=10000, w=5, prior=prior_fn)
-# save samples
+# samples2 <- mcmc(lik=lnL, x.init=c(9,1), nsteps=10000, w=5, prior=prior_fn_2)
+# profiles.plot(samples2[c("X1", "X2")], col.line=col, las=1,
+#               xlab="Parameter value", legend="topright")
+# # save samples
 # save(samples, file="saves/samples-2.RData")
 load("saves/samples-2.RData")
 
