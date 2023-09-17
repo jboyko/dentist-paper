@@ -73,9 +73,9 @@ for(i in 1:length(datas)){
 # parametric boostrap approach
 nsteps <- c(10, 50, 100, 500, 1000)
 
-# fits <- mclapply(all_data, function(x) try(singleRun(nsteps, x[[1]], x[[2]])))
+fits <- mclapply(all_data, function(x) try(singleRun(nsteps, x[[1]], x[[2]])), mc.cores = 1)
 # save(fits, file = "saves/corhmm-example-fits.rsave")
-load(file = "saves/corhmm-example-fits.rsave")
+# load(file = "saves/corhmm-example-fits.rsave")
 fits <- fits[unlist(lapply(fits, class)) != "try-error"] # remove univariate simulations
 many_sims <- do.call(rbind, fits)
 # Add simulation identifier
@@ -92,8 +92,8 @@ many_sims_diff <- many_sims %>%
   mutate(
     true_lower.CI = lower.CI[method == "parametric-bootstrap"],
     true_upper.CI = upper.CI[method == "parametric-bootstrap"],
-    abs_diff_lower = abs(true_lower.CI - lower.CI),
-    abs_diff_upper = abs(true_upper.CI - upper.CI)
+    diff_lower = sqrt((log(true_lower.CI+1) - log(lower.CI+1))^2),
+    diff_upper = sqrt((log(true_upper.CI+1) - log(upper.CI+1))^2)
   ) %>%
   ungroup()
 
@@ -103,7 +103,7 @@ many_sims_diff$nsteps <- as.numeric(gsub("dentist_", "", many_sims_diff$method))
 
 # Reshape data to long format
 many_sims_diff_long <- many_sims_diff %>%
-  pivot_longer(cols = c(abs_diff_lower, abs_diff_upper),
+  pivot_longer(cols = c(diff_lower, diff_upper),
                names_to = "bound",
                values_to = "abs_diff")
 
@@ -113,13 +113,13 @@ many_sims_diff_long$bound <- recode(many_sims_diff_long$bound,
                                     abs_diff_upper = "Upper Bound")
 
 # Plot
-ggplot(many_sims_diff_long, aes(x = as.factor(nsteps), y = abs_diff, fill = bound)) +
+ggplot(many_sims_diff_long, aes(x = as.factor(nsteps), y = (abs_diff), fill = bound)) +
   xlab("Number of steps taken") +
-  ylab("Absolute distance to bootstrap CI") +
+  ylab("Mean Squared Logarithmic Error") +
   geom_boxplot(outlier.shape = NA, width = 0.5) +
   theme_classic() +
   scale_fill_brewer(palette = "Set1") +
-  ylim(c(0, 2)) +
+  # coord_cartesian(ylim = c(0, 2)) +
   facet_wrap(~paramater)
 
 
