@@ -2,6 +2,7 @@ setwd("~/dentist-paper/")
 
 library(corHMM)
 library(phytools)
+library(dentist)
 
 # The dataset comes from unpublished empirical work and thus names of species and traits are removed. This dataset is not curated to produce a desired result, but is the most recent example I have of this phenomenon.
 # Load data
@@ -15,17 +16,39 @@ tree <- read.tree("tree.tre")
 # save(model_fit, file = "saves/complex-corhmm-model.rsave")
 load("saves/complex-corhmm-model.rsave")
 
-fn_corHMM <- function(par, phy, data, rate.cat){
+fn_corHMM <- function(par, phy, data){
   corhmm_fit <- corHMM(phy = phy, data = data, rate.cat = 1, p = par)
   loglik <- corhmm_fit$loglik
   neg_loglik <- -loglik
   return(neg_loglik)
 }
 
+p <- sapply(1:max(model_fit$index.mat, na.rm = TRUE), function(x) 
+  na.omit(c(model_fit$solution))[na.omit(c(model_fit$index.mat) == x)][1])
 
-dent_res <- ComputeCI(model_fit, n.points = 1000)
-dent_res$results[,-1] <- log(dent_res$results[,-1])
+model_fit$index.mat[is.na(model_fit$index.mat)] <- 0
+par_names <- c()
+for(i in 1:8){
+  index <- which(model_fit$index.mat == i, arr.ind = TRUE)
+  from <- rownames(model_fit$index.mat)[index[1]]
+  to <- colnames(model_fit$index.mat)[index[2]]
+  par_names[i] <- paste0(from, "_to_", to)
+}
+par_names <- gsub("\\(", "", par_names)
+par_names <- gsub("\\)", "", par_names)
+names(p) <- par_names
+
+# dent_res <- dent_walk(par=p, fn=fn_corHMM, best_neglnL=-model_fit$loglik, nsteps=1000, print_freq=1e10, phy = tree, data = dat)
+# save(dent_res, file = "saves/dent_res_complex.rsave")
+load("saves/dent_res_complex.rsave")
 plot(dent_res)
+
+# dent_res$results[,-1] <- log(dent_res$results[,-1])
+# plot(dent_res)
+head(dent_res$results)
+tmp <- dent_res
+tmp$results <- tmp$results[,-c(3,5:9)]
+dentist:::plot.dentist(tmp)
 
 # completely randomm stuff i'm doing to examine things
 test_mat <- getStateMat4Dat(cor_dat)

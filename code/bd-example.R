@@ -127,6 +127,7 @@ set.seed(1)
 
 require(diversitree)
 require(dentist)
+require(TreeSim)
 
 ### #### ##### ### #### ##### ### #### #####
 # testing CI convergence
@@ -182,6 +183,29 @@ ggplot(many_sims_diff_long, aes(x = as.factor(nsteps), y = abs_diff, fill = boun
   scale_fill_brewer(palette = "Set1") +
   ylim(c(0, 2)) +
   facet_wrap(~paramater)
+
+# table 1 results
+
+dent_1000_l <- many_sims[(many_sims$method == "dentist_1000") &
+                            (many_sims$paramater == "lambda"),]
+para_boot_l <- many_sims[many_sims$method == "parametric-bootstrap" &
+                            (many_sims$paramater == "lambda"),]
+
+dent_1000_m <- many_sims[many_sims$method == "dentist_1000" &
+                            (many_sims$paramater == "mu"),]
+para_boot_m <- many_sims[many_sims$method == "parametric-bootstrap" &
+                            (many_sims$paramater == "mu"),]
+
+quick_test <- function(focal_row){
+  res <- (focal_row[4] > focal_row[5]) & (focal_row[4] < focal_row[6])
+  return(res)
+}
+
+table(apply(para_boot_l, 1, quick_test))
+table(apply(para_boot_m, 1, quick_test))
+
+table(apply(dent_1000_l, 1, quick_test))
+table(apply(dent_1000_m, 1, quick_test))
 
 
 ### #### ##### ### #### ##### ### #### ##### 

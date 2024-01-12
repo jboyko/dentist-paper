@@ -1,5 +1,5 @@
 # functions
-quickSim <- function(phy, rate_12=0.1, rate_21=0.01, anc = c(0,1)){
+quickSim <- function(phy, rate_12=0.1, rate_21=0.1, anc = c(0,1)){
   Q <- matrix(c(-rate_21, rate_12, rate_21, -rate_12), 2, 2)
   data <- corHMM:::simMarkov(phy, Q, anc)$TipStates
   data <- data.frame(sp = names(data), d = data)
@@ -57,11 +57,11 @@ require(parallel)
 require(TreeSim)
 
 # well get our pars from here
-pars <- c(0.1, 0.01)
+pars <- c(0.1, 0.1)
 ntaxa <- 50
 age <- 50
 
-set.seed(1)
+set.seed(1985)
 trees <- sim.bd.taxa.age(ntaxa, 100, 0.1, 0.05, age = age)
 datas <- lapply(trees, function(x) quickSim(x, pars[1], pars[2]))
 
@@ -73,9 +73,9 @@ for(i in 1:length(datas)){
 # parametric boostrap approach
 nsteps <- c(10, 50, 100, 500, 1000)
 
-fits <- mclapply(all_data, function(x) try(singleRun(nsteps, x[[1]], x[[2]])), mc.cores = 1)
+# fits <- mclapply(all_data, function(x) try(singleRun(nsteps, x[[1]], x[[2]])), mc.cores = 20)
 # save(fits, file = "saves/corhmm-example-fits.rsave")
-# load(file = "saves/corhmm-example-fits.rsave")
+load(file = "saves/corhmm-example-fits.rsave")
 fits <- fits[unlist(lapply(fits, class)) != "try-error"] # remove univariate simulations
 many_sims <- do.call(rbind, fits)
 # Add simulation identifier
@@ -119,40 +119,30 @@ ggplot(many_sims_diff_long, aes(x = as.factor(nsteps), y = (abs_diff), fill = bo
   geom_boxplot(outlier.shape = NA, width = 0.5) +
   theme_classic() +
   scale_fill_brewer(palette = "Set1") +
-  # coord_cartesian(ylim = c(0, 2)) +
+  coord_cartesian(ylim = c(0, 1.5)) +
   facet_wrap(~paramater)
 
+ggsave("plots/corhmm-bootstrap-vs-dentist.pdf", width = 10, height = 5)
 
-# using dentist
-par <- c(MK_3state$solution[!is.na(MK_3state$solution)])
-names(par) <- c("rate_21", "rate_12")
-data <- primates[[2]]
-data <- data[,c(1,2)]
-# corhmm_example_jnt <- dent_walk(par, fn_corHMM, -MK_3state$loglik, phy = phy, data = data, rate.cat = 1, nsteps = 2000)
-# save(corhmm_example_jnt, file = "saves/corhmm-example-corhmm_example_jnt.rsave")
-load("saves/corhmm-example-corhmm_example_jnt.rsave")
+# table 1 results
+dent_1000_12 <- many_sims[(many_sims$method == "dentist_1000") &
+                            (many_sims$paramater == "rate_12"),]
+para_boot_12 <- many_sims[many_sims$method == "parametric-bootstrap" &
+                            (many_sims$paramater == "rate_12"),]
 
-# comparison
-corhmm_example_jnt
-mean(refit_pars[,1])
-median(refit_pars[,1])
-quantile(refit_pars[,1], c(.025, .975))
-mean(refit_pars[,2])
-median(refit_pars[,2])
-quantile(refit_pars[,2], c(.025, .975))
+dent_1000_21 <- many_sims[many_sims$method == "dentist_1000" &
+                            (many_sims$paramater == "rate_21"),]
+para_boot_21 <- many_sims[many_sims$method == "parametric-bootstrap" &
+                            (many_sims$paramater == "rate_21"),]
 
-# save(corhmm_example, file = "saves/corhmm_example.Rsave")
-# 
-# load("saves/corhmm_example.Rsave")
-all_results <- corhmm_example_jnt$results[-1,]
-accepted_results <- corhmm_example_jnt$results[-1,][corhmm_example_jnt$acceptances,]
-round(cor(all_results[,-1]), 3)
-round(cor(accepted_results[,-1]), 3)
+quick_test <- function(focal_row){
+  res <- (focal_row[4] > focal_row[5]) & (focal_row[4] < focal_row[6])
+  return(res)
+}
 
+table(apply(para_boot_12, 1, quick_test))
+table(apply(para_boot_21, 1, quick_test))
 
-dentist:::summary.dentist(corhmm_example_jnt)
+table(apply(dent_1000_12, 1, quick_test))
+table(apply(dent_1000_21, 1, quick_test))
 
-# save the plot as a pdf
-pdf(file = "plots/corhmm_example.pdf", width = 10, height = 10)
-plot(corhmm_example_jnt)
-dev.off()
